@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAJIM BD TOUR - Live Firebase Tournament App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Hind+Siliguri:wght@400;600;700&display=swap');
+
+        :root {
+            --primary: #ff5500;
+            --bg-dark: #090c12;
+            --card-bg: #131822;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --success: #00e676;
+            --danger: #ff1744;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', 'Hind Siliguri', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding-bottom: 85px;
+            max-width: 480px;
+            margin: 0 auto;
+            border-left: 1px solid #1e2636;
+            border-right: 1px solid #1e2636;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .anim-card { animation: slideUp 0.3s ease forwards; }
+
+        .full-screen-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at top, #1b2232 0%, #090c12 80%);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 390px;
+            animation: slideUp 0.3s ease;
+        }
+
+        .auth-title {
+            text-align: center;
+            font-size: 25px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .warning-msg {
+            background: rgba(255, 23, 68, 0.15);
+            border: 1px solid var(--danger);
+            color: #ff617d;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+            animation: shake 0.3s ease;
+        }
+
+        #banScreen {
+            display: none;
+            background: #0d0406;
+            text-align: center;
+            z-index: 2000;
+        }
+
+        .ban-box {
+            background: #1a080c;
+            border: 2px solid var(--danger);
+            padding: 28px 20px;
+            border-radius: 16px;
+            max-width: 360px;
+        }
+
+        .header {
+            background: rgba(19, 24, 34, 0.96);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #222b3a;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wallet-badge {
+            background: rgba(255, 85, 0, 0.16);
+            border: 1px solid var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .notice-bar {
+            background: #18202e;
+            padding: 8px 15px;
+            font-size: 13px;
+            color: #ffca28;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #252f40;
+        }
+
+        .section { display: none; padding: 15px; }
+        .section.active { display: block; animation: slideUp 0.25s ease; }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: var(--card-bg);
+            border: 1px solid #263042;
+            color: var(--text-muted);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .match-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 15px;
+            border: 1px solid #232c3d;
+            position: relative;
+        }
+
+        .match-badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--success);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .match-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .match-time { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+
+        .match-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: #0d1118;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .stat-box span { display: block; font-size: 11px; color: var(--text-muted); }
+        .stat-box strong { font-size: 15px; color: #fff; }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            height: 7px;
+            background: #232c3d;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #ff9100);
+            transition: width 0.3s ease;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px 13px;
+            margin-bottom: 11px;
+            background: #0b0e14;
+            border: 1px solid #2a3548;
+            border-radius: 9px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus, select:focus { border-color: var(--primary); }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 9px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid #354259; color: #fff; }
+        .btn-joined { background: var(--success); color: #000; }
+
+        .form-box {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #232c3d;
+        }
+
+        .form-box h3 { margin-bottom: 12px; font-size: 16px; color: var(--primary); }
+
+        .wallet-card {
+            background: linear-gradient(135deg, #ff5500 0%, #992600 100%);
+            padding: 22px;
+            border-radius: 14px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .tx-item {
+            background: #0f131b;
+            padding: 11px;
+            border-radius: 9px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 480px;
+            background: #131822;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #232c3d;
+            z-index: 100;
+        }
+
+        .nav-item {
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .nav-item i { display: block; font-size: 18px; margin-bottom: 3px; }
+        .nav-item.active { color: var(--primary); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 300;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 22px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 390px;
+            border: 1px solid var(--primary);
+        }
+
+        .pay-choice-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 9px;
+            border: 1px solid #2c374b;
+            background: #0b0e14;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .pay-choice-btn.active-bkash {
+            border-color: #e2136e;
+            background: rgba(226, 19, 110, 0.18);
+            color: #ff69b4;
+        }
+
+        .pay-choice-btn.active-wallet {
+            border-color: var(--success);
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="banScreen" class="full-screen-overlay">
+        <div class="ban-box">
+            <i class="fas fa-ban" style="font-size: 55px; color: var(--danger); margin-bottom: 12px;"></i>
+            <h2 style="color: var(--danger); font-size: 26px; margin-bottom: 8px;">আপনার একাউন্ট ব্যান হয়েছে!</h2>
+            <p style="color: #ccc; font-size: 14px; margin-bottom: 18px;">
+                অ্যাডমিন কর্তৃক আপনার একাউন্টটি ব্লক করা হয়েছে। আপনি আর এই অ্যাপে প্রবেশ করতে পারবেন না।
+            </p>
+            <button class="btn btn-outline" onclick="logoutUser()">অন্য একাউন্ট দিয়ে চেষ্টা করুন</button>
+        </div>
+    </div>
+
+    <div id="authScreen" class="full-screen-overlay">
+        <div class="auth-box">
+            <div class="auth-title"><i class="fas fa-fire"></i> TAJIM BD TOUR</div>
+            <p id="authSubTitle" style="text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">আপনার একাউন্টে লগইন করুন</p>
+
+            <div id="authWarning" class="warning-msg"></div>
+
+            <div id="loginForm">
+                <input type="tel" id="loginPhone" placeholder="মোবাইল নম্বর (যেমন: 017xxxxxxxx)">
+                <input type="password" id="loginPass" placeholder="পাসওয়ার্ড দিন">
+                <button class="btn btn-primary" onclick="handleLogin()">লগইন করুন</button>
+                <p style="text-align: center; margin-top: 15px; font-size: 14px; color: var(--text-muted);">
+                    আগের কোনো আইডি নেই? <span style="color: var(--primary); font-weight: bold; cursor: pointer;" onclick="toggleAuthMode('signup')">সাইন আপ করুন</span>
+                </p>
+            </div>
+
+            <div id="signupForm" style="display: none;">
+                <input type="text" id="regName" placeholder="ইউজার নাম (কমপক্ষে ৩ অক্ষর)">
+                <input type="tel" id="regPhone" placeholder="মোবাইল নম্বর (১১ ডিজিট, যেমন: 017...)">
+                <input type="password" id="regPass" placeholder="পাসওয়ার্ড (কমপক্ষে ৪ অক্ষর)">
+                <input type="password" id="regConfirmPass" placeholder="কনফার্ম পাসওয়ার্ড আবার লিখুন">
+                <button class="btn btn-primary" onclick="handleSignup()">একাউন্ট তৈরি করুন (Sign Up)</button>
+                <p style="text-align: center; margin-top: 15px; font-size: 14px; color: var(--text-muted);">
+                    আগে থেকেই আইডি আছে? <span style="color: var(--primary); font-weight: bold; cursor: pointer;" onclick="toggleAuthMode('login')">লগইন করুন</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp" style="display: none;">
+        <div class="header">
+            <div class="logo"><i class="fas fa-fire"></i> TAJIM BD TOUR</div>
+            <div class="wallet-badge" onclick="switchTab('wallet')">
+                <i class="fas fa-wallet"></i> ৳<span id="userBalance">0</span>
+            </div>
+        </div>
+
+        <div class="notice-bar">
+            <i class="fas fa-bullhorn"></i>
+            <marquee id="appNotice">স্বাগতম TAJIM BD TOUR অ্যাপে! ম্যাচ শুরুর ১০ মিনিট আগে Room ID ও Password দেওয়া হবে।</marquee>
+        </div>
+
+        <div id="home" class="section active">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="filterMatches('ALL', this)">সব ম্যাচ</button>
+                <button class="tab-btn" onclick="filterMatches('BR', this)">BR Ranked</button>
+                <button class="tab-btn" onclick="filterMatches('CS', this)">Clash Squad</button>
+                <button class="tab-btn" onclick="filterMatches('LONE', this)">Lone Wolf</button>
+            </div>
+            <div id="matchList"></div>
+        </div>
+
+        <div id="mymatches" class="section">
+            <h3 style="margin-bottom: 15px; color: var(--primary);">আমার জয়েন করা ম্যাচসমূহ</h3>
+            <div id="joinedMatchList"></div>
+        </div>
+
+        <div id="wallet" class="section">
+            <div class="wallet-card">
+                <p>বর্তমান ব্যালেন্স</p>
+                <h2 style="font-size: 34px; margin: 5px 0;">৳<span id="walletBalanceDisplay">0</span></h2>
+                <small>TAJIM BD TOUR Live Wallet</small>
+            </div>
+
+            <div class="form-box">
+                <h3><i class="fas fa-plus-circle"></i> টাকা অ্যাড করুন (Deposit)</h3>
+                <p style="font-size: 13px; color: #ffca28; margin-bottom: 10px;">
+                    বিকাশ Send Money নম্বর: <strong id="adminPayNumber">01616966321</strong>
+                </p>
+                <select id="depMethod">
+                    <option value="bKash">bKash</option>
+                    <option value="Nagad">Nagad</option>
+                </select>
+                <input type="number" id="depAmount" placeholder="টাকার পরিমাণ (যেমন: 100)">
+                <input type="text" id="depTrx" placeholder="">
+                <button class="btn btn-primary" onclick="requestDeposit()">ডিপোজিট রিকোয়েস্ট পাঠান</button>
+            </div>
+
+            <div class="form-box">
+                <h3><i class="fas fa-money-bill-wave"></i> টাকা তুলুন (Withdraw)</h3>
+                <select id="withMethod">
+                    <option value="bKash">bKash</option>
+                    <option value="Nagad">Nagad</option>
+                </select>
+                <input type="tel" id="withNumber" placeholder="আপনার বিকাশ/নগদ নম্বর">
+                <input type="number" id="withAmount" placeholder="উইথড্র পরিমাণ (সর্বনিম্ন ৫০ টাকা)">
+                <button class="btn btn-outline" style="border-color: var(--success); color: var(--success);" onclick="requestWithdraw()">উইথড্র রিকোয়েস্ট পাঠান</button>
+            </div>
+
+            <h4 style="margin-bottom: 10px;">লেনদেনের ইতিহাস</h4>
+            <div id="txHistory"></div>
+        </div>
+
+        <div id="profile" class="section">
+            <div class="form-box" style="text-align: center;">
+                <i class="fas fa-user-astronaut" style="font-size: 52px; color: var(--primary); margin-bottom: 10px;"></i>
+                <h3 id="profNameDisplay" style="color: #fff; font-size: 22px;">User</h3>
+                <p style="color: var(--text-muted); font-size: 13px;">মোবাইল: <span id="profPhoneDisplay"></span></p>
+                <p style="color: var(--text-muted); font-size: 13px;">FF UID: <span id="profUidDisplay">Not Set</span></p>
+            </div>
+
+            <div class="form-box">
+                <h3>গেম প্রোফাইল আপডেট</h3>
+                <input type="text" id="inputIngameName" placeholder="Free Fire In-Game Name">
+                <input type="number" id="inputUid" placeholder="Free Fire UID">
+                <button class="btn btn-primary" onclick="saveProfile()">সেভ করুন</button>
+            </div>
+
+            <button class="btn btn-outline" style="border-color: var(--danger); color: var(--danger);" onclick="logoutUser()">
+                <i class="fas fa-sign-out-alt"></i> লগআউট করুন
+            </button>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home', this)">
+                <i class="fas fa-gamepad"></i> টুর্নামেন্ট
+            </div>
+            <div class="nav-item" onclick="switchTab('mymatches', this)">
+                <i class="fas fa-trophy"></i> আমার ম্যাচ
+            </div>
+            <div class="nav-item" onclick="switchTab('wallet', this)">
+                <i class="fas fa-wallet"></i> ওয়ালেট
+            </div>
+            <div class="nav-item" onclick="switchTab('profile', this)">
+                <i class="fas fa-user"></i> প্রোফাইল
+            </div>
+        </div>
+    </div>
+
+    <div id="joinModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 8px; color: var(--primary);">ম্যাচে জয়েন করুন</h3>
+            <p id="modalMatchTitle" style="font-size: 14px; margin-bottom: 12px;"></p>
+
+            <input type="text" id="joinPlayerName" placeholder="আপনার গেমের নাম (In-Game Name)">
+
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <button type="button" id="btnPayWallet" class="pay-choice-btn active-wallet" onclick="selectJoinMethod('wallet')">
+                    <i class="fas fa-wallet"></i> ওয়ালেট
+                </button>
+                <button type="button" id="btnPayBkash" class="pay-choice-btn" onclick="selectJoinMethod('bkash')">
+                    <i class="fas fa-mobile-alt"></i> বিকাশ
+                </button>
+            </div>
+
+            <div id="bkashJoinBox" style="display: none; background: #0b0e14; border: 1px solid #e2136e; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                <p style="font-size: 13px; color: #ff85c2; margin-bottom: 8px;">
+                    বিকাশ Send Money নম্বর: <strong id="modalBkashNum" style="color: #fff;">01616966321</strong>
+                </p>
+                <input type="text" id="joinBkashTrx" placeholder="" style="margin-bottom: 0;">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-outline" onclick="closeModal('joinModal')">বাতিল</button>
+                <button class="btn btn-primary" onclick="confirmJoin()">কনফার্ম জয়েন</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="roomModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 10px; color: var(--success);"><i class="fas fa-key"></i> Room Details</h3>
+            <div style="background: #0b0e14; padding: 14px; border-radius: 10px; margin-bottom: 15px;">
+                <p style="margin-bottom: 6px;">Room ID: <strong id="displayRoomId" style="color: #ffca28; font-size: 18px;">Waiting...</strong></p>
+                <p>Password: <strong id="displayRoomPass" style="color: #00e676; font-size: 18px;">Waiting...</strong></p>
+            </div>
+            <button class="btn btn-primary" onclick="closeModal('roomModal')">ঠিক আছে</button>
+        </div>
+    </div>
+
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <script>
+        // =========================================================================
+        // নিচের FIREBASE_CONFIG এর জায়গায় আপনার Firebase Console থেকে পাওয়া Config বসান
+        // =========================================================================
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyAkUmWmvHuzu1-45mYjF5gzAvs_0LU7Q",
+            authDomain: "tajim-vai-322f4.firebaseapp.com",
+            databaseURL: "https://tajim-vai-322f4-default-rtdb.firebaseio.com",
+            projectId: "tajim-vai-322f4",
+            storageBucket: "tajim-vai-322f4.firebasestorage.app",
+            messagingSenderId: "321099968473",
+            appId: "1:321099968473:web:bc96ccde1b9449fbc1840",
+            measurementId: "G-W1QKPMLV3N"
+        };
+
+        let db = null;
+        let useFirebase = false;
+        try {
+            if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith("YOUR_")) {
+                firebase.initializeApp(FIREBASE_CONFIG);
+                db = firebase.database();
+                useFirebase = true;
+            }
+        } catch (e) {
+            console.error("Firebase init failed, using localStorage fallback:", e);
+        }
+
+        const SESSION_KEY = 'tajim_tour_session_phone';
+        let currentFilter = 'ALL';
+        let selectedMatchId = null;
+        let selectedJoinMethod = 'wallet';
+        let state = { users: {}, matches: {}, txs: {}, settings: { notice: "স্বাগতম TAJIM BD TOUR অ্যাপে! ম্যাচ শুরুর ১০ মিনিট আগে Room ID ও Password দেওয়া হবে।", payNumber: "01616966321" } };
+
+        function savePath(path, val) {
+            if (useFirebase && db) {
+                return db.ref(path).set(val);
+            } else {
+                const localKey = 'tajim_fb_local_' + path;
+                localStorage.setItem(localKey, JSON.stringify(val));
+                state[path] = val;
+                renderAll();
+                return Promise.resolve();
+            }
+        }
+
+        function pushPath(path, val) {
+            if (useFirebase && db) {
+                return db.ref(path).push(val);
+            } else {
+                const current = state[path] || {};
+                const id = 'item_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                current[id] = val;
+                return savePath(path, current);
+            }
+        }
+
+        function startListeners() {
+            if (useFirebase && db) {
+                db.ref('users').on('value', snap => { state.users = snap.val() || {}; renderAll(); });
+                db.ref('matches').on('value', snap => { state.matches = snap.val() || {}; renderAll(); });
+                db.ref('txs').on('value', snap => { state.txs = snap.val() || {}; renderAll(); });
+                db.ref('settings').on('value', snap => {
+                    const s = snap.val();
+                    if (s) state.settings = s;
+                    renderAll();
+                });
+            } else {
+                ['users', 'matches', 'txs', 'settings'].forEach(k => {
+                    const raw = localStorage.getItem('tajim_fb_local_' + k);
+                    if (raw) state[k] = JSON.parse(raw);
+                });
+                renderAll();
+                window.addEventListener('storage', () => {
+                    ['users', 'matches', 'txs', 'settings'].forEach(k => {
+                        const raw = localStorage.getItem('tajim_fb_local_' + k);
+                        if (raw) state[k] = JSON.parse(raw);
+                    });
+                    renderAll();
+                });
+            }
+        }
+
+        function showWarning(msg) {
+            const w = document.getElementById('authWarning');
+            w.innerText = msg;
+            w.style.display = 'block';
+            w.style.animation = 'none';
+            w.offsetHeight;
+            w.style.animation = 'shake 0.3s ease';
+        }
+
+        function toggleAuthMode(mode) {
+            document.getElementById('authWarning').style.display = 'none';
+            if (mode === 'signup') {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('signupForm').style.display = 'block';
+                document.getElementById('authSubTitle').innerText = "নতুন একাউন্ট তৈরি করুন";
+            } else {
+                document.getElementById('signupForm').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('authSubTitle').innerText = "আপনার একাউন্টে লগইন করুন";
+            }
+        }
+
+        function getUsersList() {
+            return Object.entries(state.users || {}).map(([key, val]) => ({ ...val, _key: key }));
+        }
+
+        function handleSignup() {
+            const name = document.getElementById('regName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const pass = document.getElementById('regPass').value;
+            const confirmPass = document.getElementById('regConfirmPass').value;
+
+            const nameRegex = /^[a-zA-Z0-9ঀ-৿\s._-]{3,25}$/;
+            const phoneRegex = /^01[3-9]\d{8}$/;
+
+            if (!name || !nameRegex.test(name)) return showWarning("⚠️ সঠিক ইউজার নাম দিন! (কমপক্ষে ৩ অক্ষর)");
+            if (!phoneRegex.test(phone)) return showWarning("⚠️ সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 01712345678)");
+            if (pass.length < 4 || /\s/.test(pass)) return showWarning("⚠️ পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে (স্পেস ছাড়া)");
+            if (pass !== confirmPass) return showWarning("❌ ভুল পাসওয়ার্ড! কনফার্ম পাসওয়ার্ড মিলছে না।");
+
+            const existing = getUsersList().find(u => u.phone === phone);
+            if (existing) return showWarning("⚠️ এই মোবাইল নম্বর দিয়ে আগেই আইডি খোলা হয়েছে! লগইন করুন।");
+
+            const newUser = {
+                name, phone, pass,
+                uid: "Not Set",
+                balance: 0,
+                blocked: false
+            };
+
+            savePath('users/' + phone, newUser).then(() => {
+                localStorage.setItem(SESSION_KEY, phone);
+                renderAll();
+            });
+        }
+
+        function handleLogin() {
+            const phone = document.getElementById('loginPhone').value.trim();
+            const pass = document.getElementById('loginPass').value;
+
+            if (!phone || !pass) return showWarning("⚠️ মোবাইল নম্বর এবং পাসওয়ার্ড দিন!");
+
+            const user = getUsersList().find(u => u.phone === phone);
+            if (!user) return showWarning("⚠️ এই নম্বরে কোনো আইডি পাওয়া যায়নি! নিচে 'সাইন আপ করুন' বাটনে ক্লিক করে নতুন আইডি খুলুন।");
+            if (user.pass !== pass) return showWarning("❌ ভুল পাসওয়ার্ড দিয়েছেন!");
+
+            localStorage.setItem(SESSION_KEY, phone);
+            renderAll();
+        }
+
+        function logoutUser() {
+            localStorage.removeItem(SESSION_KEY);
+            renderAll();
+        }
+
+        function isTyping() {
+            const active = document.activeElement;
+            return active && (active.tagName === 'INPUT' || active.tagName === 'SELECT');
+        }
+
+        function renderAll() {
+            const sessionPhone = localStorage.getItem(SESSION_KEY);
+            if (!sessionPhone) {
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('banScreen').style.display = 'none';
+                return;
+            }
+
+            const currentUser = getUsersList().find(u => u.phone === sessionPhone);
+            if (!currentUser) {
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('banScreen').style.display = 'none';
+                return;
+            }
+
+            if (currentUser.blocked === true) {
+                document.getElementById('banScreen').style.display = 'flex';
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('banScreen').style.display = 'none';
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+
+            if (isTyping()) return;
+
+            const payNum = (state.settings && state.settings.payNumber) || "01616966321";
+            document.getElementById('appNotice').innerText = (state.settings && state.settings.notice) || "";
+            document.getElementById('adminPayNumber').innerText = payNum;
+            document.getElementById('modalBkashNum').innerText = payNum;
+
+            document.getElementById('userBalance').innerText = currentUser.balance || 0;
+            document.getElementById('walletBalanceDisplay').innerText = currentUser.balance || 0;
+            document.getElementById('profNameDisplay').innerText = currentUser.name;
+            document.getElementById('profPhoneDisplay').innerText = currentUser.phone;
+            document.getElementById('profUidDisplay').innerText = currentUser.uid || "Not Set";
+
+            const matchesArr = Object.entries(state.matches || {}).map(([id, m]) => ({ ...m, _id: id }));
+            const matchList = document.getElementById('matchList');
+            const joinedList = document.getElementById('joinedMatchList');
+            matchList.innerHTML = '';
+            joinedList.innerHTML = '';
+
+            matchesArr.forEach(m => {
+                const joinedListObj = m.joinedPlayers || {};
+                const joinedArr = Object.values(joinedListObj);
+                const isJoined = joinedArr.some(p => p.phone === currentUser.phone);
+                const percent = Math.min(100, Math.round((joinedArr.length / (m.totalSlots || 48)) * 100));
+
+                const card = `
+                    <div class="match-card anim-card">
+                        <span class="match-badge">${m.type}</span>
+                        <div class="match-title">${m.title}</div>
+                        <div class="match-time"><i class="far fa-clock"></i> ${m.time}</div>
+                        ${m.winner ? `<div style="background:rgba(0,230,118,0.12); color:#00e676; padding:6px 10px; border-radius:6px; font-size:13px; margin-bottom:10px;"><i class="fas fa-crown"></i> Winner: <strong>${m.winner}</strong></div>` : ''}
+                        <div class="match-stats">
+                            <div class="stat-box"><span>প্রাইজ পুল</span><strong>৳${m.prize}</strong></div>
+                            <div class="stat-box"><span>প্রতি কিল</span><strong>৳${m.perKill || 0}</strong></div>
+                            <div class="stat-box"><span>এন্ট্রি ফি</span><strong style="color:var(--primary)">৳${m.entry}</strong></div>
+                        </div>
+                        <div class="progress-info">
+                            <span>বাকি সিট: ${Math.max(0, (m.totalSlots || 48) - joinedArr.length)}</span>
+                            <span>${joinedArr.length}/${m.totalSlots || 48}</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+                        ${isJoined
+                            ? `<button class="btn btn-joined" onclick="showRoom('${m._id}')"><i class="fas fa-key"></i> Room ID / Password দেখুন</button>`
+                            : `<button class="btn btn-primary" onclick="openJoinModal('${m._id}')">জয়েন করুন (৳${m.entry})</button>`
+                        }
+                    </div>
+                `;
+
+                if (currentFilter === 'ALL' || m.type === currentFilter) {
+                    matchList.innerHTML += card;
+                }
+                if (isJoined) {
+                    joinedList.innerHTML += card;
+                }
+            });
+
+            if (!matchList.innerHTML) matchList.innerHTML = '<p style="text-align:center; color:#8b9bb4; margin-top:30px;">বর্তমানে কোনো ম্যাচ নেই।</p>';
+            if (!joinedList.innerHTML) joinedList.innerHTML = '<p style="text-align:center; color:#8b9bb4; margin-top:30px;">আপনি এখনো কোনো ম্যাচে জয়েন করেননি।</p>';
+
+            const userTxs = Object.values(state.txs || {}).filter(t => t.phone === currentUser.phone);
+            const txDiv = document.getElementById('txHistory');
+            txDiv.innerHTML = userTxs.length ? '' : '<p style="font-size:12px; color:#8b9bb4;">কোনো লেনদেন নেই।</p>';
+            userTxs.slice().reverse().forEach(t => {
+                let color = t.status === 'Approved' ? 'var(--success)' : (t.status === 'Rejected' ? 'var(--danger)' : '#ffca28');
+                txDiv.innerHTML += `
+                    <div class="tx-item">
+                        <div>
+                            <strong>${t.type} (${t.method})</strong><br>
+                            <small style="color:#8b9bb4">${t.info}</small>
+                        </div>
+                        <div style="text-align:right">
+                            <strong>৳${t.amount}</strong><br>
+                            <span style="color:${color}; font-size:11px;">${t.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if (el) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                el.classList.add('active');
+            }
+            renderAll();
+        }
+
+        function filterMatches(type, btn) {
+            currentFilter = type;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAll();
+        }
+
+        function selectJoinMethod(method) {
+            selectedJoinMethod = method;
+            const btnWallet = document.getElementById('btnPayWallet');
+            const btnBkash = document.getElementById('btnPayBkash');
+            const bkashBox = document.getElementById('bkashJoinBox');
+
+            if (method === 'wallet') {
+                btnWallet.className = 'pay-choice-btn active-wallet';
+                btnBkash.className = 'pay-choice-btn';
+                bkashBox.style.display = 'none';
+            } else {
+                btnBkash.className = 'pay-choice-btn active-bkash';
+                btnWallet.className = 'pay-choice-btn';
+                bkashBox.style.display = 'block';
+                document.getElementById('joinBkashTrx').value = '';
+            }
+        }
+
+        function openJoinModal(matchId) {
+            const sessionPhone = localStorage.getItem(SESSION_KEY);
+            const user = getUsersList().find(u => u.phone === sessionPhone);
+            const match = state.matches[matchId];
+            if (!match || !user) return;
+
+            const joinedCount = Object.keys(match.joinedPlayers || {}).length;
+            if (joinedCount >= (match.totalSlots || 48)) return alert("দুঃখিত! সব সিট পূর্ণ হয়ে গেছে।");
+
+            selectedMatchId = matchId;
+            document.getElementById('modalMatchTitle').innerText = `${match.title} - এন্ট্রি ফি: ৳${match.entry}`;
+            document.getElementById('joinPlayerName').value = user.name;
+            document.getElementById('joinBkashTrx').value = '';
+
+            if ((user.balance || 0) < match.entry) {
+                alert("আপনার ওয়ালেটে টাকা নেই! টাকা ডুকাইতে হবে — বিকাশ অপশন সিলেক্ট করে 01616966321 নম্বরে টাকা পাঠিয়ে ট্রানজেকশন আইডি দিন।");
+                selectJoinMethod('bkash');
+            } else {
+                selectJoinMethod('wallet');
+            }
+
+            document.getElementById('joinModal').style.display = 'flex';
+        }
+
+        function confirmJoin() {
+            const ign = document.getElementById('joinPlayerName').value.trim();
+            if (!ign) return alert("গেমের নাম লিখুন!");
+
+            const sessionPhone = localStorage.getItem(SESSION_KEY);
+            const user = getUsersList().find(u => u.phone === sessionPhone);
+            const match = state.matches[selectedMatchId];
+            if (!user || !match) return;
+
+            if (selectedJoinMethod === 'wallet') {
+                if ((user.balance || 0) < match.entry) {
+                    return alert("আপনার ওয়ালেটে টাকা নেই! টাকা ডুকাইতে হবে।");
+                }
+                const nextBal = (user.balance || 0) - match.entry;
+                savePath('users/' + user.phone + '/balance', nextBal);
+            } else {
+                const trxId = document.getElementById('joinBkashTrx').value.trim();
+                if (!trxId) return alert("বিকাশ নম্বর 01616966321 এ টাকা পাঠিয়ে ট্রানজেকশন আইডি দিন!");
+                pushPath('txs', {
+                    phone: user.phone,
+                    type: 'Match Join (bKash)',
+                    method: 'bKash',
+                    amount: match.entry,
+                    info: 'Trx: ' + trxId + ' | Match: ' + match.title,
+                    status: 'Approved'
+                });
+            }
+
+            pushPath('matches/' + selectedMatchId + '/joinedPlayers', { phone: user.phone, ign }).then(() => {
+                closeModal('joinModal');
+                alert("অভিনন্দন! সাথে সাথে ম্যাচে জয়েন সফল হয়েছে।");
+            });
+        }
+
+        function showRoom(matchId) {
+            const match = state.matches[matchId];
+            if (!match) return;
+            document.getElementById('displayRoomId').innerText = match.roomId || "Waiting...";
+            document.getElementById('displayRoomPass').innerText = match.roomPass || "Waiting...";
+            document.getElementById('roomModal').style.display = 'flex';
+        }
+
+        function requestDeposit() {
+            const method = document.getElementById('depMethod').value;
+            const amount = parseInt(document.getElementById('depAmount').value);
+            const trx = document.getElementById('depTrx').value.trim();
+            const phone = localStorage.getItem(SESSION_KEY);
+
+            if (!amount || amount < 10 || !trx) return alert("সঠিক পরিমাণ এবং ট্রানজেকশন আইডি দিন!");
+
+            pushPath('txs', { phone, type: 'Deposit', method, amount, info: 'Trx: ' + trx, status: 'Pending' }).then(() => {
+                document.getElementById('depAmount').value = '';
+                document.getElementById('depTrx').value = '';
+                alert("ডিপোজিট রিকোয়েস্ট পাঠানো হয়েছে!");
+            });
+        }
+
+        function requestWithdraw() {
+            const method = document.getElementById('withMethod').value;
+            const number = document.getElementById('withNumber').value.trim();
+            const amount = parseInt(document.getElementById('withAmount').value);
+            const phone = localStorage.getItem(SESSION_KEY);
+            const user = getUsersList().find(u => u.phone === phone);
+
+            if (!user) return;
+            if (!number || !amount || amount < 50) return alert("সর্বনিম্ন ৫০ টাকা এবং সঠিক নম্বর দিন!");
+            if ((user.balance || 0) < amount) return alert("পর্যাপ্ত ব্যালেন্স নেই! টাকা ডুকাইতে হবে।");
+
+            savePath('users/' + phone + '/balance', (user.balance || 0) - amount);
+            pushPath('txs', { phone, type: 'Withdraw', method, amount, info: 'No: ' + number, status: 'Pending' }).then(() => {
+                document.getElementById('withNumber').value = '';
+                document.getElementById('withAmount').value = '';
+                alert("উইথড্র রিকোয়েস্ট সফল হয়েছে!");
+            });
+        }
+
+        function saveProfile() {
+            const ign = document.getElementById('inputIngameName').value.trim();
+            const uid = document.getElementById('inputUid').value.trim();
+            const phone = localStorage.getItem(SESSION_KEY);
+            const user = getUsersList().find(u => u.phone === phone);
+            if (!user) return;
+
+            if (ign) savePath('users/' + phone + '/name', ign);
+            if (uid) savePath('users/' + phone + '/uid', uid);
+            alert("প্রোফাইল আপডেট হয়েছে!");
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        startListeners();
+    </script>
+</body>
+</html>
