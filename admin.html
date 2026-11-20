@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TAJIM BD TOUR ADMIN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0e14;
+            --card: #151a24;
+            --soft: #1e2533;
+            --accent: #00e5ff;
+            --orange: #ff6a00;
+            --red: #ff3b4e;
+            --green: #22c55e;
+            --border: #252e3f;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Hind Siliguri', sans-serif;
+            padding-bottom: 45px;
+        }
+        .wrap { max-width: 540px; margin: 0 auto; padding: 14px; }
+        .login-box { max-width: 360px; margin: 90px auto; background: var(--card); border: 1px solid var(--border); padding: 22px; border-radius: 14px; }
+        .top { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .top h1 { font-family: 'Rajdhani', sans-serif; font-size: 20px; color: var(--accent); }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+        .stat-card span { font-size: 12px; color: var(--muted); display: block; }
+        .stat-card strong { font-size: 22px; color: #fff; }
+        .nav-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 4px; scrollbar-width: none; }
+        .nav-tabs::-webkit-scrollbar { display: none; }
+        .n-tab { padding: 8px 12px; border-radius: 9px; background: var(--card); border: 1px solid var(--border); color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+        .n-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+        .field { margin-bottom: 10px; }
+        .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+        .field input, .field select, .field textarea { width: 100%; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg); color: #fff; font-family: inherit; font-size: 14px; outline: none; }
+        .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+        .btn { padding: 8px 12px; border: none; border-radius: 9px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform 0.12s ease; }
+        .btn:active { transform: scale(0.96); }
+        .btn-cyan { background: var(--accent); color: #000; width: 100%; padding: 11px; font-size: 15px; }
+        .btn-green { background: var(--green); color: #fff; }
+        .btn-red { background: var(--red); color: #fff; }
+        .btn-orange { background: var(--orange); color: #fff; }
+        .btn-soft { background: var(--soft); color: var(--accent); border: 1px solid var(--accent); }
+        .item-row { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 11px; margin-bottom: 9px; font-size: 13px; }
+        .row-btns { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .player-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.82); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+        .modal-bg.show { display: flex; }
+        .modal-box { width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+    </style>
+</head>
+<body>
+
+<div id="admin-login" class="login-box">
+    <h2 style="color:var(--accent); margin-bottom:6px;">👑 TAJIM BD TOUR ADMIN</h2>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">অ্যাডমিন পাসওয়ার্ড দিন</p>
+    <div class="field">
+        <input type="password" id="adm-pass" placeholder="পাসওয়ার্ড">
+    </div>
+    <button type="button" class="btn btn-cyan" onclick="checkAdminPass()">লগইন করুন</button>
+</div>
+
+<div id="admin-panel" class="wrap" style="display:none;">
+    <div class="top">
+        <div>
+            <h1>👑 TAJIM BD TOUR ADMIN</h1>
+            <small style="color:#4ade80;">● Firebase Realtime DB Connected</small>
+        </div>
+        <button type="button" class="btn btn-red" onclick="adminLogout()">লগআউট</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><span>মোট ইউজার</span><strong id="st-users">0</strong></div>
+        <div class="stat-card"><span>মোট টুর্নামেন্ট</span><strong id="st-matches">0</strong></div>
+        <div class="stat-card"><span>পেন্ডিং পেমেন্ট</span><strong id="st-pending">0</strong></div>
+        <div class="stat-card"><span>ব্যানড ইউজার</span><strong id="st-banned">0</strong></div>
+    </div>
+
+    <div class="nav-tabs">
+        <button type="button" class="n-tab active" onclick="showAdmTab('tx', this)">💰 ডিপোজিট/উইথড্র</button>
+        <button type="button" class="n-tab" onclick="showAdmTab('matches', this)">🎮 ম্যাচ ও জয়েন লিস্ট</button>
+        <button type="button" class="n-tab" onclick="showAdmTab('users', this)">👤 ইউজার অ্যাকাউন্ট</button>
+        <button type="button" class="n-tab" onclick="showAdmTab('settings', this)">⚙️ অ্যাপ সেটিংস</button>
+    </div>
+
+    <!-- Transactions -->
+    <div id="adm-tx" class="card">
+        <h3 style="margin-bottom:10px;">💳 ডিপোজিট ও উইথড্র রিকোয়েস্ট</h3>
+        <div id="tx-list"><p style="color:var(--muted);">লোড হচ্ছে...</p></div>
+    </div>
+
+    <!-- Matches -->
+    <div id="adm-matches" style="display:none;">
+        <div class="card">
+            <h3 style="margin-bottom:10px;">➕ নতুন ম্যাচ তৈরি করুন</h3>
+            <div class="field"><label>ম্যাচের নাম</label><input type="text" id="m-title" placeholder="Bermuda Full Map"></div>
+            <div class="field">
+                <label>টাইপ / মোড</label>
+                <select id="m-type">
+                    <option value="BR">BR Ranked</option>
+                    <option value="CS">Clash Squad</option>
+                    <option value="LW">Lone Wolf</option>
+                </select>
+            </div>
+            <div class="field"><label>ম্যাপ</label><input type="text" id="m-map" value="Bermuda"></div>
+            <div class="field"><label>সময়</label><input type="text" id="m-time" placeholder="আজ রাত ৯:০০ টা"></div>
+            <div class="field"><label>প্রাইজ পুল (৳)</label><input type="number" id="m-prize" value="400"></div>
+            <div class="field"><label>প্রতি কিল (৳)</label><input type="number" id="m-kill" value="10"></div>
+            <div class="field"><label>এন্ট্রি ফি (৳)</label><input type="number" id="m-fee" value="20"></div>
+            <div class="field"><label>মোট সিট</label><input type="number" id="m-spots" value="48"></div>
+            <button type="button" class="btn btn-cyan" onclick="createMatch()">ম্যাচ পাবলিশ করুন</button>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom:10px;">📋 চলমান ম্যাচ, Room ID ও জয়েন লিস্ট</h3>
+            <div id="adm-match-list"></div>
+        </div>
+    </div>
+
+    <!-- User Accounts & Wallet -->
+    <div id="adm-users" class="card" style="display:none;">
+        <h3 style="margin-bottom:10px;">👤 ইউজার অ্যাকাউন্ট লিস্ট</h3>
+        <div id="adm-user-list"></div>
+    </div>
+
+    <!-- Settings, Full Screen Message Lock & Editable Notice -->
+    <div id="adm-settings" style="display:none;">
+        <div class="card" style="border-color: rgba(255, 106, 0, 0.45);">
+            <h3 style="margin-bottom:8px; color:var(--orange);">📺 ফুল স্ক্রিন মেসেজ লক</h3>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+                চালু করলে ইউজারদের পুরো স্ক্রিনে মেসেজ ভেসে উঠবে এবং আপনি রিমুভ না করা পর্যন্ত ক্লোজ করতে পারবে না।
+            </p>
+            <div class="item-row" style="margin-bottom:10px;">
+                <span style="font-size:12px; color:var(--muted);">স্ট্যাটাস: </span>
+                <strong id="screen-msg-status" style="color:var(--muted);">বন্ধ (Off)</strong><br>
+                <span id="screen-msg-preview" style="color:#fff; font-size:13px;">নেই</span>
+            </div>
+            <div class="field">
+                <label>ফুল স্ক্রিনে দেখানোর মেসেজ লিখুন</label>
+                <textarea id="full-msg-input" rows="3" placeholder="যেমন: সার্ভার আপডেটের কাজ চলছে, কিছুক্ষণ পর আবার চেষ্টা করুন।"></textarea>
+            </div>
+            <div class="row-btns">
+                <button type="button" class="btn btn-orange" style="flex:1;" onclick="enableFullScreenMessage()">🚀 চালু করুন (Full Screen)</button>
+                <button type="button" class="btn btn-red" style="flex:1;" onclick="removeFullScreenMessage()">🗑️ রিমুভ করুন</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom:10px;">⚙️ নোটিশ ও বিকাশ নম্বর</h3>
+            <div class="item-row" style="margin-bottom:12px;">
+                <span style="color:var(--muted); font-size:12px;">বর্তমান পাবলিশড নোটিশ:</span><br>
+                <strong id="current-published-notice" style="color:var(--orange);">...</strong>
+                <div class="row-btns">
+                    <button type="button" class="btn btn-soft" onclick="editPublishedNotice()">✏️ এডিট</button>
+                </div>
+            </div>
+            <div class="field"><label>নতুন নোটিশ বা মেসেজ লিখুন</label><input type="text" id="set-notice" placeholder="নোটিশ লিখুন..."></div>
+            <div class="field"><label>বিকাশ / নগদ পার্সোনাল নম্বর</label><input type="text" id="set-pay" placeholder="017XXXXXXXX"></div>
+            <button type="button" class="btn btn-cyan" onclick="saveAdmSettings()">সেটিংস সেভ করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Joined Players & Kick Modal -->
+<div class="modal-bg" id="joins-modal">
+    <div class="modal-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 id="joins-modal-title" style="color:var(--accent); font-size:17px;">জয়েন হওয়া প্লেয়ার লিস্ট</h3>
+            <button type="button" class="btn btn-red" onclick="closeJoinsModal()">বন্ধ করুন</button>
+        </div>
+        <div id="joins-modal-content"></div>
+    </div>
+</div>
+
+<!-- User Account Details & Balance Edit Modal -->
+<div class="modal-bg" id="user-edit-modal">
+    <div class="modal-box" id="user-edit-modal-body"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const app = initializeApp({ databaseURL: "https://tajim-vai-322f4-default-rtdb.firebaseio.com" });
+    const db = getDatabase(app);
+
+    let allJoinsData = {};
+    let allMatchesMap = {};
+    let allUsersMap = {};
+    let activeModalMatchId = null;
+
+    if (sessionStorage.getItem('tajim_adm_auth') === '1') openPanel();
+
+    window.checkAdminPass = function() {
+        if (document.getElementById('adm-pass').value.trim() === '6251') {
+            sessionStorage.setItem('tajim_adm_auth', '1');
+            openPanel();
+        } else {
+            alert('পাসওয়ার্ড ভুল!');
+        }
+    };
+
+    window.adminLogout = function() {
+        sessionStorage.removeItem('tajim_adm_auth');
+        location.reload();
+    };
+
+    function openPanel() {
+        document.getElementById('admin-login').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'block';
+        startListeners();
+    }
+
+    window.showAdmTab = function(tab, el) {
+        ['tx', 'matches', 'users', 'settings'].forEach(t => {
+            document.getElementById('adm-' + t).style.display = t === tab ? 'block' : 'none';
+        });
+        document.querySelectorAll('.n-tab').forEach(b => b.classList.remove('active'));
+        if (el) el.classList.add('active');
+    };
+
+    function startListeners() {
+        onValue(ref(db, 'joins'), (snap) => {
+            allJoinsData = snap.exists() ? snap.val() : {};
+            renderMatchesList();
+            if (activeModalMatchId) {
+                renderJoinedPlayersModal(activeModalMatchId);
+            }
+        });
+
+        onValue(ref(db, 'users'), (snap) => {
+            allUsersMap = {};
+            const list = document.getElementById('adm-user-list');
+            list.innerHTML = '';
+            let total = 0, banned = 0;
+
+            if (snap.exists()) {
+                snap.forEach(c => {
+                    total++;
+                    const u = c.val();
+                    const key = c.key;
+                    allUsersMap[key] = u;
+                    if (u.banned) banned++;
+
+                    const div = document.createElement('div');
+                    div.className = 'item-row';
+                    div.innerHTML = `
+                        <strong>${u.name || 'User'}</strong> • ব্যালেন্স: <strong style="color:var(--orange);">৳${Number(u.balance || 0)}</strong>
+                        ${u.banned ? '<span style="color:var(--red); font-weight:700;"> [BANNED]</span>' : ''}
+                    `;
+
+                    const btns = document.createElement('div');
+                    btns.className = 'row-btns';
+
+                    const editBtn = document.createElement('button');
+                    editBtn.type = 'button';
+                    editBtn.className = 'btn btn-soft';
+                    editBtn.innerText = '✏️ এডিট';
+                    editBtn.onclick = () => openUserEditModal(key);
+
+                    const banBtn = document.createElement('button');
+                    banBtn.type = 'button';
+                    banBtn.className = 'btn btn-red';
+                    banBtn.innerText = u.banned ? 'Unban' : 'Ban';
+                    banBtn.onclick = () => update(ref(db, 'users/' + key), { banned: !u.banned });
+
+                    btns.appendChild(editBtn);
+                    btns.appendChild(banBtn);
+                    div.appendChild(btns);
+                    list.appendChild(div);
+                });
+            }
+
+            if (total === 0) {
+                list.innerHTML = '<p style="color:var(--muted);">কোনো ইউজার নেই।</p>';
+            }
+
+            document.getElementById('st-users').innerText = total;
+            document.getElementById('st-banned').innerText = banned;
+        });
+
+        onValue(ref(db, 'matches'), (snap) => {
+            allMatchesMap = {};
+            let count = 0;
+            if (snap.exists()) {
+                snap.forEach(c => {
+                    count++;
+                    allMatchesMap[c.key] = c.val();
+                });
+            }
+            document.getElementById('st-matches').innerText = count;
+            renderMatchesList();
+        });
+
+        onValue(ref(db, 'transactions'), (snap) => {
+            const list = document.getElementById('tx-list');
+            list.innerHTML = '';
+            let pending = 0;
+            if (snap.exists()) {
+                const arr = [];
+                snap.forEach(c => arr.push({ key: c.key, ...c.val() }));
+                arr.reverse().forEach(tx => {
+                    if (tx.status === 'Pending') pending++;
+                    const div = document.createElement('div');
+                    div.className = 'item-row';
+                    div.innerHTML = `
+                        <strong>[${tx.type}] ৳${tx.amount} (${tx.method || 'bKash'})</strong> • স্ট্যাটাস: <strong>${tx.status}</strong><br>
+                        ইউজার: ${tx.phone} | নম্বর: ${tx.number} ${tx.trxId ? '| Trx: ' + tx.trxId : ''}
+                    `;
+                    if (tx.status === 'Pending') {
+                        const btns = document.createElement('div');
+                        btns.className = 'row-btns';
+
+                        const appBtn = document.createElement('button');
+                        appBtn.type = 'button';
+                        appBtn.className = 'btn btn-green';
+                        appBtn.innerText = 'Approve';
+                        appBtn.onclick = async () => {
+                            await update(ref(db, 'transactions/' + tx.key), { status: 'Approved' });
+                            if (tx.type === 'Add Money') {
+                                const uSnap = await get(ref(db, 'users/' + tx.phone));
+                                if (uSnap.exists()) {
+                                    await update(ref(db, 'users/' + tx.phone), {
+                                        balance: Number(uSnap.val().balance || 0) + Number(tx.amount || 0)
+                                    });
+                                }
+                            }
+                        };
+
+                        const rejBtn = document.createElement('button');
+                        rejBtn.type = 'button';
+                        rejBtn.className = 'btn btn-red';
+                        rejBtn.innerText = 'Reject';
+                        rejBtn.onclick = async () => {
+                            await update(ref(db, 'transactions/' + tx.key), { status: 'Rejected' });
+                            if (tx.type === 'Withdraw') {
+                                const uSnap = await get(ref(db, 'users/' + tx.phone));
+                                if (uSnap.exists()) {
+                                    await update(ref(db, 'users/' + tx.phone), {
+                                        balance: Number(uSnap.val().balance || 0) + Number(tx.amount || 0)
+                                    });
+                                }
+                            }
+                        };
+
+                        btns.appendChild(appBtn);
+                        btns.appendChild(rejBtn);
+                        div.appendChild(btns);
+                    }
+                    list.appendChild(div);
+                });
+            }
+            document.getElementById('st-pending').innerText = pending;
+        });
+
+        onValue(ref(db, 'settings'), (snap) => {
+            if (!snap.exists()) return;
+            const s = snap.val();
+            if (typeof s.notice === 'string') {
+                document.getElementById('current-published-notice').innerText = s.notice || 'নেই';
+                if (!document.getElementById('set-notice').value) {
+                    document.getElementById('set-notice').value = s.notice;
+                }
+            }
+            if (s.payNumber && !document.getElementById('set-pay').value) {
+                document.getElementById('set-pay').value = s.payNumber;
+            }
+
+            const sm = s.screenMessage;
+            const statusEl = document.getElementById('screen-msg-status');
+            const previewEl = document.getElementById('screen-msg-preview');
+            if (sm && sm.active && sm.text) {
+                statusEl.innerText = 'চালু আছে (Locked on Users)';
+                statusEl.style.color = '#4ade80';
+                previewEl.innerText = sm.text;
+                if (!document.getElementById('full-msg-input').value) {
+                    document.getElementById('full-msg-input').value = sm.text;
+                }
+            } else {
+                statusEl.innerText = 'বন্ধ (Off)';
+                statusEl.style.color = 'var(--muted)';
+                previewEl.innerText = 'নেই';
+            }
+        });
+    }
+
+    window.enableFullScreenMessage = async function() {
+        const text = document.getElementById('full-msg-input').value.trim();
+        if (!text) {
+            alert('আগে ফুল স্ক্রিনে দেখানোর মেসেজটি লিখুন!');
+            return;
+        }
+        await update(ref(db, 'settings/screenMessage'), {
+            active: true,
+            text,
+            updatedAt: new Date().toLocaleString()
+        });
+        alert('ফুল স্ক্রিন মেসেজ চালু করা হয়েছে! আপনি রিমুভ না করা পর্যন্ত ইউজাররা এটি বন্ধ করতে পারবে না।');
+    };
+
+    window.removeFullScreenMessage = async function() {
+        await update(ref(db, 'settings/screenMessage'), {
+            active: false,
+            text: ''
+        });
+        document.getElementById('full-msg-input').value = '';
+        alert('ফুল স্ক্রিন মেসেজ রিমুভ করা হয়েছে!');
+    };
+
+    window.editPublishedNotice = function() {
+        const currentText = document.getElementById('current-published-notice').innerText;
+        const input = document.getElementById('set-notice');
+        input.value = currentText === 'নেই' ? '' : currentText;
+        input.focus();
+    };
+
+    window.openUserEditModal = function(userKey) {
+        const u = allUsersMap[userKey] || {};
+        const modal = document.getElementById('user-edit-modal');
+        const body = document.getElementById('user-edit-modal-body');
+
+        body.innerHTML = `
+            <h3 style="color:var(--accent); margin-bottom:10px;">👤 ইউজার অ্যাকাউন্ট তথ্য</h3>
+            <div class="item-row">
+                <div><strong>নাম:</strong> ${u.name || '-'}</div>
+                <div><strong>মোবাইল নম্বর:</strong> <span style="color:var(--accent); font-weight:700;">${u.phone || userKey}</span></div>
+                <div><strong>পাসওয়ার্ড:</strong> <span style="color:var(--orange); font-weight:700;">${u.pass || '-'}</span></div>
+                <div><strong>গেম নাম ও UID:</strong> ${u.ffName || '-'} / ${u.uid || '-'}</div>
+            </div>
+            <div class="field">
+                <label>নতুন ব্যালেন্স লিখে দিন (৳)</label>
+                <input type="number" id="modal-user-bal" value="${Number(u.balance || 0)}">
+            </div>
+            <div class="row-btns">
+                <button type="button" class="btn btn-green" style="flex:1;" onclick="saveUserBalanceFromModal('${userKey}')">টাকা সেভ করুন</button>
+                <button type="button" class="btn btn-red" onclick="closeUserEditModal()">বন্ধ</button>
+            </div>
+        `;
+        modal.classList.add('show');
+    };
+
+    window.saveUserBalanceFromModal = async function(userKey) {
+        const val = Number(document.getElementById('modal-user-bal').value);
+        if (Number.isNaN(val) || val < 0) {
+            alert('সঠিক টাকার পরিমাণ লিখুন!');
+            return;
+        }
+        await update(ref(db, 'users/' + userKey), { balance: val });
+        closeUserEditModal();
+        alert('ইউজার ব্যালেন্স আপডেট হয়েছে!');
+    };
+
+    window.closeUserEditModal = function() {
+        document.getElementById('user-edit-modal').classList.remove('show');
+    };
+
+    function renderMatchesList() {
+        const list = document.getElementById('adm-match-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        const keys = Object.keys(allMatchesMap);
+        if (!keys.length) {
+            list.innerHTML = '<p style="color:var(--muted);">কোনো ম্যাচ নেই।</p>';
+            return;
+        }
+
+        keys.forEach(id => {
+            const m = allMatchesMap[id] || {};
+            const matchJoins = allJoinsData[id] || {};
+            const joinedTotal = Object.keys(matchJoins).length;
+
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            div.innerHTML = `
+                <strong>${m.title || 'Match'}</strong> (${m.type || 'BR'}) • জয়েন: <strong style="color:var(--accent);">${joinedTotal}/${m.totalSpots || 48}</strong><br>
+                Fee: ৳${m.entryFee || 0} | Room ID: <strong>${m.roomId || 'নেই'}</strong> | Pass: <strong>${m.roomPass || 'নেই'}</strong>
+            `;
+
+            const btns = document.createElement('div');
+            btns.className = 'row-btns';
+
+            const listBtn = document.createElement('button');
+            listBtn.type = 'button';
+            listBtn.className = 'btn btn-soft';
+            listBtn.innerText = `👥 জয়েন লিস্ট (${joinedTotal})`;
+            listBtn.onclick = () => openJoinedPlayersModal(id);
+
+            const roomBtn = document.createElement('button');
+            roomBtn.type = 'button';
+            roomBtn.className = 'btn btn-orange';
+            roomBtn.innerText = '🔑 Room ID দিন';
+            roomBtn.onclick = async () => {
+                const rid = prompt('Room ID লিখুন:', m.roomId || '');
+                const rpass = prompt('Room Password লিখুন:', m.roomPass || '');
+                if (rid !== null) await update(ref(db, 'matches/' + id), { roomId: rid, roomPass: rpass || '' });
+            };
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'btn btn-red';
+            delBtn.innerText = '🗑️ ডিলিট';
+            delBtn.onclick = async () => {
+                await remove(ref(db, 'matches/' + id));
+                await remove(ref(db, 'joins/' + id));
+            };
+
+            btns.appendChild(listBtn);
+            btns.appendChild(roomBtn);
+            btns.appendChild(delBtn);
+            div.appendChild(btns);
+            list.appendChild(div);
+        });
+    }
+
+    window.openJoinedPlayersModal = function(matchId) {
+        activeModalMatchId = matchId;
+        renderJoinedPlayersModal(matchId);
+        document.getElementById('joins-modal').classList.add('show');
+    };
+
+    window.closeJoinsModal = function() {
+        activeModalMatchId = null;
+        document.getElementById('joins-modal').classList.remove('show');
+    };
+
+    function renderJoinedPlayersModal(matchId) {
+        const m = allMatchesMap[matchId] || {};
+        const playersObj = allJoinsData[matchId] || {};
+        const entries = Object.entries(playersObj);
+
+        document.getElementById('joins-modal-title').innerText = `${m.title || 'Match'} — জয়েন লিস্ট (${entries.length})`;
+        const box = document.getElementById('joins-modal-content');
+        box.innerHTML = '';
+
+        if (!entries.length) {
+            box.innerHTML = '<p style="color:var(--muted); padding:16px 0; text-align:center;">এই ম্যাচে এখনো কেউ জয়েন করেনি।</p>';
+            return;
+        }
+
+        entries.forEach(([pushKey, p], idx) => {
+            const row = document.createElement('div');
+            row.className = 'player-box';
+
+            const info = document.createElement('div');
+            info.style.fontSize = '13px';
+            info.innerHTML = `
+                <strong>#${idx + 1} ${p.name || 'Player'}</strong> (${p.ffName || '-'})<br>
+                <span style="color:var(--muted);">UID: ${p.uid || '-'} | ফোন: ${p.phone || '-'}</span><br>
+                <span style="color:var(--orange); font-size:11px;">Fee: ৳${p.paidFee || 0} • ${p.paymentMethod || 'Wallet'}</span>
+            `;
+
+            const kickBtn = document.createElement('button');
+            kickBtn.type = 'button';
+            kickBtn.className = 'btn btn-red';
+            kickBtn.innerText = '🥾 কিক';
+            kickBtn.onclick = () => kickPlayerFromMatch(matchId, pushKey, p);
+
+            row.appendChild(info);
+            row.appendChild(kickBtn);
+            box.appendChild(row);
+        });
+    }
+
+    async function kickPlayerFromMatch(matchId, pushKey, playerData) {
+        const ok = confirm(`${playerData.name || 'এই প্লেয়ার'}-কে ম্যাচ থেকে কিক দিয়ে বের করে দিতে চান?`);
+        if (!ok) return;
+
+        await remove(ref(db, `joins/${matchId}/${pushKey}`));
+
+        const remainingSnap = await get(ref(db, `joins/${matchId}`));
+        const newCount = remainingSnap.exists() ? Object.keys(remainingSnap.val()).length : 0;
+        await update(ref(db, `matches/${matchId}`), { joinedCount: newCount });
+
+        const refundFee = Number(playerData.paidFee || 0);
+        if (refundFee > 0 && playerData.phone) {
+            const shouldRefund = confirm(`এন্ট্রি ফি ৳${refundFee} কি ইউজারের ওয়ালেটে ফেরত (Refund) দিবেন?`);
+            if (shouldRefund) {
+                const uSnap = await get(ref(db, 'users/' + playerData.phone));
+                if (uSnap.exists()) {
+                    await update(ref(db, 'users/' + playerData.phone), {
+                        balance: Number(uSnap.val().balance || 0) + refundFee
+                    });
+                }
+            }
+        }
+    }
+
+    window.createMatch = async function() {
+        const title = document.getElementById('m-title').value.trim();
+        if (!title) return alert('ম্যাচের নাম দিন!');
+        await push(ref(db, 'matches'), {
+            title,
+            type: document.getElementById('m-type').value,
+            map: document.getElementById('m-map').value.trim() || 'Bermuda',
+            time: document.getElementById('m-time').value.trim() || 'শীঘ্রই',
+            prize: Number(document.getElementById('m-prize').value || 0),
+            perKill: Number(document.getElementById('m-kill').value || 0),
+            entryFee: Number(document.getElementById('m-fee').value || 0),
+            totalSpots: Number(document.getElementById('m-spots').value || 48),
+            joinedCount: 0,
+            roomId: '',
+            roomPass: ''
+        });
+        document.getElementById('m-title').value = '';
+        alert('ম্যাচ পাবলিশ হয়েছে!');
+    };
+
+    window.saveAdmSettings = async function() {
+        await update(ref(db, 'settings'), {
+            notice: document.getElementById('set-notice').value.trim(),
+            payNumber: document.getElementById('set-pay').value.trim()
+        });
+        alert('সেটিংস সেভ হয়েছে!');
+    };
+</script>
+</body>
+</html>
